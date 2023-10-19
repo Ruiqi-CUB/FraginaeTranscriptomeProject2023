@@ -508,6 +508,35 @@ for (goDivision in go){
 ####7.2 TopGO adn Revigo
 
 ```r
+geneID2GO <- readMappings(file = "FS_gene2go_topGO.tab")
+str(head(geneID2GO))
+
+##############################
+### FS - Mantle
+##############################
+
+# Load the list of interesting genes
+SU_AM_vs_CM_UP_geneID <- read.table(file = "FS_AM_vs_AF_UP_genelist", sep="\t")
+SU_AM_vs_CM_UP_geneID <- SU_AM_vs_CM_UP_geneID[,1]
+# assign 1 for the DEG, 0 for others
+geneNames <- names(geneID2GO)
+geneList <- factor(as.integer(geneNames %in% SU_AM_vs_CM_UP_geneID))   
+names(geneList) <- geneNames
+str(geneList)
+#construct a topGOdata object
+GOdata <- new("topGOdata", description="SU_AM_vs_CM_UP BP", ontology = "BP", allGenes = geneList, annot = annFUN.gene2GO, gene2GO = geneID2GO)
+# GO enrichment test with fisher classic
+SU_AM_vs_CM_UP_resultFisher  <- runTest(GOdata, algorithm = "classic", statistic = "fisher")
+# visualize p-value vs. number of GOs
+pvalFis <- score(SU_AM_vs_CM_UP_resultFisher)
+head(pvalFis)
+hist(pvalFis, 50, xlab = "p-values")
+# Basic information on input data
+geneData(SU_AM_vs_CM_UP_resultFisher)
+# Summarising the results
+allRes <- GenTable(GOdata, classic = SU_AM_vs_CM_UP_resultFisher, ranksOf = "classic", topNodes = 1000)
+write.table(allRes, "FS_AM_vs_AF_UP_TopGO.txt", sep = "\t", quote = FALSE)
+
 ```
 
 ```bash
